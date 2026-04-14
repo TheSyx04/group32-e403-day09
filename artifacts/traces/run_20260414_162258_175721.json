@@ -1,0 +1,87 @@
+{
+  "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+  "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context | human_review approved fallback to retrieval_worker",
+  "risk_high": true,
+  "needs_tool": false,
+  "hitl_triggered": true,
+  "retrieved_chunks": [],
+  "retrieved_sources": [],
+  "policy_result": {},
+  "mcp_tools_used": [],
+  "final_answer": "Không đủ thông tin trong tài liệu nội bộ để trả lời câu hỏi này.",
+  "sources": [],
+  "confidence": 0.1,
+  "history": [
+    "[graph] run started",
+    "[supervisor] received task: ERR-403-AUTH là lỗi gì và cách xử lý?",
+    "[supervisor] route=human_review risk_high=True needs_tool=False reason=task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context",
+    "[route_decision] next_node=human_review",
+    "[human_review] HITL triggered - placeholder approval granted",
+    "[retrieval_worker] retrieved 0 chunks from []",
+    "[synthesis_worker] answer generated, confidence=0.1, sources=[]",
+    "[graph] completed in 4665ms"
+  ],
+  "worker_io_logs": [
+    {
+      "worker": "supervisor",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?"
+      },
+      "output": {
+        "supervisor_route": "human_review",
+        "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context",
+        "risk_high": true,
+        "needs_tool": false,
+        "mcp_decision": "không chọn MCP"
+      },
+      "error": null
+    },
+    {
+      "worker": "human_review",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "supervisor_route": "human_review",
+        "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context"
+      },
+      "output": {
+        "approved": true,
+        "reroute_to": "retrieval_worker"
+      },
+      "error": null
+    },
+    {
+      "worker": "retrieval_worker",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "top_k": 3
+      },
+      "output": {
+        "chunks_count": 0,
+        "sources": []
+      },
+      "error": null
+    },
+    {
+      "worker": "synthesis_worker",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "chunks_count": 0,
+        "has_policy": false
+      },
+      "output": {
+        "answer_length": 64,
+        "sources": [],
+        "confidence": 0.1
+      },
+      "error": null
+    }
+  ],
+  "workers_called": [
+    "human_review",
+    "retrieval_worker",
+    "synthesis_worker"
+  ],
+  "supervisor_route": "retrieval_worker",
+  "latency_ms": 4665,
+  "run_id": "run_20260414_162258_175721"
+}
