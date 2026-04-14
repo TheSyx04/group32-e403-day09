@@ -9,7 +9,7 @@ Input (từ AgentState):
 
 Output (vào AgentState):
     - policy_result: {"policy_applies", "policy_name", "exceptions_found", "source", "rule"}
-    - mcp_tools_used: list of tool calls đã thực hiện
+    - mcp_tools_used: list of tool calls đã thực hiện (với mcp_tool_called & mcp_result)
     - worker_io_log: log
 
 Gọi độc lập để test:
@@ -24,38 +24,28 @@ WORKER_NAME = "policy_tool_worker"
 
 
 # ─────────────────────────────────────────────
-# MCP Client — Sprint 3: Thay bằng real MCP call
+# MCP Client — Sprint 3: Dùng MCPClient class thay vì direct call
+# Policy worker gọi MCP client, KHÔNG direct call ChromaDB
 # ─────────────────────────────────────────────
 
-def _call_mcp_tool(tool_name: str, tool_input: dict) -> dict:
+def _get_mcp_client():
     """
-    Gọi MCP tool.
-
-    Sprint 3 TODO: Implement bằng cách import mcp_server hoặc gọi HTTP.
-
-    Hiện tại: Import trực tiếp từ mcp_server.py (trong-process mock).
+    Tạo MCPClient instance.
+    Sprint 3: Import từ mcp_server.py (in-process mock MCP server).
     """
-    from datetime import datetime
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    from mcp_server import MCPClient
+    return MCPClient()
 
-    try:
-        # TODO Sprint 3: Thay bằng real MCP client nếu dùng HTTP server
-        from mcp_server import dispatch_tool
-        result = dispatch_tool(tool_name, tool_input)
-        return {
-            "tool": tool_name,
-            "input": tool_input,
-            "output": result,
-            "error": None,
-            "timestamp": datetime.now().isoformat(),
-        }
-    except Exception as e:
-        return {
-            "tool": tool_name,
-            "input": tool_input,
-            "output": None,
-            "error": {"code": "MCP_CALL_FAILED", "reason": str(e)},
-            "timestamp": datetime.now().isoformat(),
-        }
+
+def _call_mcp_tool(mcp_client, tool_name: str, tool_input: dict) -> dict:
+    """
+    Gọi MCP tool thông qua MCPClient.
+
+    Sprint 3: Sử dụng MCPClient.call_tool() thay vì dispatch_tool trực tiếp.
+    Kết quả trả về đã có đầy đủ mcp_tool_called, mcp_result, timestamp.
+    """
+    return mcp_client.call_tool(tool_name, tool_input)
 
 
 # ─────────────────────────────────────────────
@@ -142,6 +132,45 @@ def analyze_policy(task: str, chunks: list) -> dict:
     }
 
 
+def _extract_ticket_id(task: str) -> str:
+    task_lower = task.lower()
+    if "p1-latest" in task_lower:
+        return "P1-LATEST"
+    if "it-" in task_lower:
+        words = task_lower.replace("/", " ").split()
+        for word in words:
+            if word.startswith("it-") or word.startswith("p1-"):
+                return word.upper()
+    return "P1-LATEST"
+
+
+def _extract_access_request(task: str) -> dict:
+    task_lower = task.lower()
+    access_level = 3
+    requester_role = "user"
+    is_emergency = any(kw in task_lower for kw in ["khẩn cấp", "khan cap", "emergency", "2am", "2 am"])
+
+    if "level 2" in task_lower or "level2" in task_lower:
+        access_level = 2
+    elif "level 3" in task_lower or "level3" in task_lower:
+        access_level = 3
+    elif "level 4" in task_lower or "level4" in task_lower:
+        access_level = 4
+
+    if "contractor" in task_lower or "nhân viên hợp đồng" in task_lower:
+        requester_role = "contractor"
+    elif "admin" in task_lower:
+        requester_role = "admin"
+    elif "user" in task_lower:
+        requester_role = "user"
+
+    return {
+        "access_level": access_level,
+        "requester_role": requester_role,
+        "is_emergency": is_emergency,
+    }
+
+
 # ─────────────────────────────────────────────
 # Worker Entry Point
 # ─────────────────────────────────────────────
@@ -149,6 +178,11 @@ def analyze_policy(task: str, chunks: list) -> dict:
 def run(state: dict) -> dict:
     """
     Worker entry point — gọi từ graph.py.
+
+    Sprint 3 changes:
+    - Tạo MCPClient instance để gọi tools (không direct call ChromaDB)
+    - Ghi mcp_tool_called và mcp_result vào trace cho mỗi lần gọi MCP
+    - Tất cả KB lookup đều đi qua MCP search_kb, không gọi ChromaDB trực tiếp
 
     Args:
         state: AgentState dict
@@ -178,34 +212,69 @@ def run(state: dict) -> dict:
     }
 
     try:
-        # Step 1: Nếu chưa có chunks, gọi MCP search_kb
-        if not chunks and needs_tool:
-            mcp_result = _call_mcp_tool("search_kb", {"query": task, "top_k": 3})
-            state["mcp_tools_used"].append(mcp_result)
-            state["history"].append(f"[{WORKER_NAME}] called MCP search_kb")
+        # Sprint 3: Tạo MCPClient — mọi tool call đi qua MCP interface
+        mcp_client = _get_mcp_client()
 
-            if mcp_result.get("output") and mcp_result["output"].get("chunks"):
-                chunks = mcp_result["output"]["chunks"]
+        # Step 1: Nếu chưa có chunks, gọi MCP search_kb (qua MCPClient, KHÔNG direct ChromaDB)
+        if not chunks and needs_tool:
+            mcp_trace = _call_mcp_tool(mcp_client, "search_kb", {"query": task, "top_k": 3})
+            state["mcp_tools_used"].append(mcp_trace)
+            state["history"].append(
+                f"[{WORKER_NAME}] called MCP search_kb | "
+                f"mcp_tool_called={mcp_trace['mcp_tool_called']} | "
+                f"timestamp={mcp_trace['timestamp']}"
+            )
+
+            if mcp_trace.get("output") and mcp_trace["output"].get("chunks"):
+                chunks = mcp_trace["output"]["chunks"]
                 state["retrieved_chunks"] = chunks
+
+        # Step 1b: Nếu task liên quan access/cấp quyền, gọi MCP access permission
+        access_tools = ["access", "cấp quyền", "admin access", "level 2", "level 3", "level 4", "contractor"]
+        if needs_tool and any(kw in task.lower() for kw in access_tools):
+            access_input = _extract_access_request(task)
+            mcp_trace = _call_mcp_tool(mcp_client, "check_access_permission", access_input)
+            state["mcp_tools_used"].append(mcp_trace)
+            state["history"].append(
+                f"[{WORKER_NAME}] called MCP check_access_permission | "
+                f"mcp_tool_called={mcp_trace['mcp_tool_called']} | "
+                f"timestamp={mcp_trace['timestamp']}"
+            )
+            state.setdefault("policy_result", {})
+            state["policy_result"]["access_check"] = mcp_trace.get("output") or mcp_trace
+
+        # Step 1c: Nếu task liên quan ticket, gọi MCP get_ticket_info
+        ticket_keywords = ["ticket", "p1", "jira"]
+        if needs_tool and any(kw in task.lower() for kw in ticket_keywords):
+            ticket_id = _extract_ticket_id(task)
+            mcp_trace = _call_mcp_tool(mcp_client, "get_ticket_info", {"ticket_id": ticket_id})
+            state["mcp_tools_used"].append(mcp_trace)
+            state["history"].append(
+                f"[{WORKER_NAME}] called MCP get_ticket_info | "
+                f"mcp_tool_called={mcp_trace['mcp_tool_called']} | "
+                f"timestamp={mcp_trace['timestamp']}"
+            )
+            state.setdefault("policy_result", {})
+            state["policy_result"]["ticket_info"] = mcp_trace.get("output") or mcp_trace
 
         # Step 2: Phân tích policy
         policy_result = analyze_policy(task, chunks)
+        if isinstance(state.get("policy_result"), dict):
+            policy_result.update(state["policy_result"])
         state["policy_result"] = policy_result
 
-        # Step 3: Nếu cần thêm info từ MCP (e.g., ticket status), gọi get_ticket_info
-        if needs_tool and any(kw in task.lower() for kw in ["ticket", "p1", "jira"]):
-            mcp_result = _call_mcp_tool("get_ticket_info", {"ticket_id": "P1-LATEST"})
-            state["mcp_tools_used"].append(mcp_result)
-            state["history"].append(f"[{WORKER_NAME}] called MCP get_ticket_info")
-
+        # Sprint 3: Ghi lại tổng hợp mcp_tool_called vào worker_io
+        mcp_tools_called = [t.get("mcp_tool_called", "unknown") for t in state["mcp_tools_used"]]
         worker_io["output"] = {
             "policy_applies": policy_result["policy_applies"],
             "exceptions_count": len(policy_result.get("exceptions_found", [])),
             "mcp_calls": len(state["mcp_tools_used"]),
+            "mcp_tools_called": mcp_tools_called,
         }
         state["history"].append(
             f"[{WORKER_NAME}] policy_applies={policy_result['policy_applies']}, "
-            f"exceptions={len(policy_result.get('exceptions_found', []))}"
+            f"exceptions={len(policy_result.get('exceptions_found', []))}, "
+            f"mcp_tools_called={mcp_tools_called}"
         )
 
     except Exception as e:
@@ -222,8 +291,11 @@ def run(state: dict) -> dict:
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     print("=" * 50)
-    print("Policy Tool Worker — Standalone Test")
+    print("Policy Tool Worker — Standalone Test (Sprint 3)")
     print("=" * 50)
 
     test_cases = [
@@ -232,18 +304,19 @@ if __name__ == "__main__":
             "retrieved_chunks": [
                 {"text": "Ngoại lệ: Đơn hàng Flash Sale không được hoàn tiền.", "source": "policy_refund_v4.txt", "score": 0.9}
             ],
+            "needs_tool": True,
         },
         {
             "task": "Khách hàng muốn hoàn tiền license key đã kích hoạt.",
             "retrieved_chunks": [
                 {"text": "Sản phẩm kỹ thuật số (license key, subscription) không được hoàn tiền.", "source": "policy_refund_v4.txt", "score": 0.88}
             ],
+            "needs_tool": True,
         },
         {
-            "task": "Khách hàng yêu cầu hoàn tiền trong 5 ngày, sản phẩm lỗi, chưa kích hoạt.",
-            "retrieved_chunks": [
-                {"text": "Yêu cầu trong 7 ngày làm việc, sản phẩm lỗi nhà sản xuất, chưa dùng.", "source": "policy_refund_v4.txt", "score": 0.85}
-            ],
+            "task": "Cần cấp quyền Level 3 cho contractor để khắc phục P1 khẩn cấp.",
+            "retrieved_chunks": [],
+            "needs_tool": True,
         },
     ]
 
@@ -256,5 +329,12 @@ if __name__ == "__main__":
             for ex in pr["exceptions_found"]:
                 print(f"  exception: {ex['type']} — {ex['rule'][:60]}...")
         print(f"  MCP calls: {len(result.get('mcp_tools_used', []))}")
+        if result.get("mcp_tools_used"):
+            for mcp_call in result["mcp_tools_used"]:
+                print(f"    ↳ mcp_tool_called: {mcp_call['mcp_tool_called']}")
+                print(f"      timestamp: {mcp_call['timestamp']}")
+                print(f"      error: {mcp_call.get('error')}")
 
-    print("\n✅ policy_tool_worker test done.")
+    print("\n✅ policy_tool_worker Sprint 3 test done.")
+    print("   ✓ Policy worker gọi MCP client, không direct call ChromaDB")
+    print("   ✓ Trace ghi mcp_tool_called cho từng lần gọi")

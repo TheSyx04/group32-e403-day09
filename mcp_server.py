@@ -1,9 +1,8 @@
 """
-mcp_server.py — Mock MCP Server
-Sprint 3: Implement ít nhất 2 MCP tools.
+mcp_server.py — Mock MCP Server (Sprint 3 Complete)
 
 Mô phỏng MCP (Model Context Protocol) interface trong Python.
-Agent (MCP client) gọi dispatch_tool() thay vì hard-code từng API.
+Agent (MCP client) gọi dispatch_tool() hoặc dùng MCPClient class thay vì hard-code từng API.
 
 Tools available:
     1. search_kb(query, top_k)           → tìm kiếm Knowledge Base
@@ -11,18 +10,22 @@ Tools available:
     3. check_access_permission(level, requester_role)  → kiểm tra quyền truy cập
     4. create_ticket(priority, title, description)     → tạo ticket mới (mock)
 
-Sử dụng:
+Sử dụng (Functional):
     from mcp_server import dispatch_tool, list_tools
 
-    # Discover available tools
     tools = list_tools()
-
-    # Call a tool
     result = dispatch_tool("search_kb", {"query": "SLA P1", "top_k": 3})
 
-Sprint 3 TODO:
-    - Option Standard: Sử dụng file này as-is (mock class)
-    - Option Advanced: Implement HTTP server với FastAPI hoặc dùng `mcp` library
+Sử dụng (OOP — MCPClient):
+    from mcp_server import MCPClient
+
+    client = MCPClient()
+    tools = client.list_tools()
+    result = client.call_tool("search_kb", {"query": "SLA P1", "top_k": 3})
+    # result chứa: tool, input, output, timestamp, mcp_tool_called, mcp_result
+
+    # Xem lịch sử call
+    print(client.get_call_log())
 
 Chạy thử:
     python mcp_server.py
@@ -135,9 +138,7 @@ TOOL_SCHEMAS = {
 def tool_search_kb(query: str, top_k: int = 3) -> dict:
     """
     Tìm kiếm Knowledge Base bằng semantic search.
-
-    TODO Sprint 3: Kết nối với ChromaDB thực.
-    Hiện tại: Delegate sang retrieval worker.
+    Kết nối với ChromaDB thông qua retrieval worker.
     """
     try:
         # Tái dùng retrieval logic từ workers/retrieval.py
@@ -276,7 +277,7 @@ def tool_create_ticket(priority: str, title: str, description: str = "") -> dict
 
 
 # ─────────────────────────────────────────────
-# Dispatch Layer — MCP server interface
+# Dispatch Layer — MCP server interface (Functional)
 # ─────────────────────────────────────────────
 
 TOOL_REGISTRY = {
@@ -328,13 +329,113 @@ def dispatch_tool(tool_name: str, tool_input: dict) -> dict:
 
 
 # ─────────────────────────────────────────────
+# MCPClient Class — Sprint 3: OOP wrapper with tracing
+# Policy worker gọi MCPClient thay vì trực tiếp dispatch_tool
+# ─────────────────────────────────────────────
+
+class MCPClient:
+    """
+    MCP Client giả lập — gọi MCP Server (in-process mock).
+
+    Cung cấp:
+    - list_tools(): discover available tools
+    - call_tool(tool_name, tool_input): gọi tool, trả về trace-ready dict
+    - get_call_log(): trả về lịch sử tất cả tool calls
+
+    Mỗi lần call_tool() tự động ghi lại:
+    - mcp_tool_called: tên tool đã gọi
+    - mcp_result: kết quả trả về
+    - timestamp: thời điểm gọi
+    - Format theo chuẩn MCP tool call JSON (README Sprint 3)
+    """
+
+    def __init__(self):
+        self._call_log: List[dict] = []
+
+    def list_tools(self) -> list:
+        """Discover available MCP tools (tương đương tools/list)."""
+        return list_tools()
+
+    def call_tool(self, tool_name: str, tool_input: dict) -> dict:
+        """
+        Gọi MCP tool và trả về kết quả với đầy đủ trace metadata.
+
+        Args:
+            tool_name: tên tool cần gọi
+            tool_input: input params cho tool
+
+        Returns:
+            dict theo format MCP tool call:
+            {
+                "tool": "search_kb",
+                "input": {"query": "...", "top_k": 3},
+                "output": {"chunks": [...], "sources": [...]},
+                "timestamp": "2026-04-13T14:32:11",
+                "mcp_tool_called": "search_kb",
+                "mcp_result": {...},
+                "error": None
+            }
+        """
+        timestamp = datetime.now().isoformat()
+
+        try:
+            result = dispatch_tool(tool_name, tool_input)
+            has_error = "error" in result and result["error"] is not None
+
+            trace_entry = {
+                "tool": tool_name,
+                "input": tool_input,
+                "output": result,
+                "timestamp": timestamp,
+                "mcp_tool_called": tool_name,
+                "mcp_result": result,
+                "error": result.get("error") if has_error else None,
+            }
+        except Exception as e:
+            trace_entry = {
+                "tool": tool_name,
+                "input": tool_input,
+                "output": None,
+                "timestamp": timestamp,
+                "mcp_tool_called": tool_name,
+                "mcp_result": None,
+                "error": {"code": "MCP_CALL_FAILED", "reason": str(e)},
+            }
+
+        self._call_log.append(trace_entry)
+        print(f"  [MCPClient] called '{tool_name}' at {timestamp}")
+        return trace_entry
+
+    def get_call_log(self) -> List[dict]:
+        """Trả về lịch sử tất cả MCP tool calls đã thực hiện."""
+        return list(self._call_log)
+
+    def get_tools_called_names(self) -> List[str]:
+        """Trả về danh sách tên các tools đã gọi (dùng cho trace)."""
+        return [entry["mcp_tool_called"] for entry in self._call_log]
+
+    def reset_log(self):
+        """Xóa lịch sử call log (dùng giữa các run)."""
+        self._call_log.clear()
+
+
+# ─────────────────────────────────────────────
 # Test & Demo
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     print("=" * 60)
-    print("MCP Server — Tool Discovery & Test")
+    print("MCP Server — Tool Discovery & Test (Sprint 3)")
     print("=" * 60)
+
+    # ---- Test 1: Functional API (dispatch_tool) ----
+    print("\n" + "-" * 40)
+    print("Part A: Functional API (dispatch_tool)")
+    print("-" * 40)
 
     # 1. Discover tools
     print("\n📋 Available Tools:")
@@ -374,5 +475,66 @@ if __name__ == "__main__":
     err = dispatch_tool("nonexistent_tool", {})
     print(f"  Error: {err.get('error')}")
 
-    print("\n✅ MCP server test done.")
-    print("\nTODO Sprint 3: Implement HTTP server nếu muốn bonus +2.")
+    # ---- Test 2: MCPClient class (OOP with tracing) ----
+    print("\n" + "-" * 40)
+    print("Part B: MCPClient Class (OOP with tracing)")
+    print("-" * 40)
+
+    client = MCPClient()
+
+    # List tools via client
+    print("\n📋 MCPClient.list_tools():")
+    for tool in client.list_tools():
+        print(f"  • {tool['name']}")
+
+    # Call search_kb via client
+    print("\n🔍 MCPClient.call_tool('search_kb', ...)")
+    trace1 = client.call_tool("search_kb", {"query": "refund policy flash sale", "top_k": 3})
+    print(f"  mcp_tool_called: {trace1['mcp_tool_called']}")
+    print(f"  timestamp: {trace1['timestamp']}")
+    print(f"  output total_found: {trace1['output'].get('total_found', 'N/A')}")
+    print(f"  error: {trace1['error']}")
+
+    # Call get_ticket_info via client
+    print("\n🎫 MCPClient.call_tool('get_ticket_info', ...)")
+    trace2 = client.call_tool("get_ticket_info", {"ticket_id": "IT-1234"})
+    print(f"  mcp_tool_called: {trace2['mcp_tool_called']}")
+    print(f"  ticket_id: {trace2['output'].get('ticket_id', 'N/A')}")
+    print(f"  priority: {trace2['output'].get('priority', 'N/A')}")
+
+    # Call check_access_permission via client
+    print("\n🔐 MCPClient.call_tool('check_access_permission', ...)")
+    trace3 = client.call_tool("check_access_permission", {
+        "access_level": 2,
+        "requester_role": "contractor",
+        "is_emergency": True,
+    })
+    print(f"  mcp_tool_called: {trace3['mcp_tool_called']}")
+    print(f"  can_grant: {trace3['output'].get('can_grant')}")
+    print(f"  emergency_override: {trace3['output'].get('emergency_override')}")
+
+    # Show call log
+    print("\n📊 MCPClient.get_call_log() — full trace:")
+    for i, entry in enumerate(client.get_call_log(), 1):
+        print(f"  [{i}] tool={entry['tool']}, timestamp={entry['timestamp']}, error={entry['error']}")
+
+    print(f"\n  Tools called: {client.get_tools_called_names()}")
+
+    # Show MCP tool call format (as per README Sprint 3)
+    print("\n📄 Example MCP tool call JSON (per README format):")
+    example_trace = client.get_call_log()[0]
+    formatted = {
+        "tool": example_trace["tool"],
+        "input": example_trace["input"],
+        "output": {
+            "chunks": f"[...{example_trace['output'].get('total_found', 0)} items...]",
+            "sources": example_trace["output"].get("sources", []),
+        },
+        "timestamp": example_trace["timestamp"],
+    }
+    print(json.dumps(formatted, indent=2, ensure_ascii=False))
+
+    print("\n✅ MCP server Sprint 3 test done.")
+    print("   ✓ 4 tools implemented (search_kb, get_ticket_info, check_access_permission, create_ticket)")
+    print("   ✓ MCPClient class with tracing (mcp_tool_called, mcp_result, timestamp)")
+    print("   ✓ Call log for observability")
