@@ -247,8 +247,7 @@ def route_decision(state: AgentState) -> Literal["retrieval_worker", "policy_too
 def human_review_node(state: AgentState) -> AgentState:
     """
     HITL node: pause và chờ human approval.
-    Trong Sprint 1, node này là placeholder để trace thể hiện rõ rằng flow
-    đã đi qua human review trước khi quay lại retrieval.
+    HITL node hiện dùng auto-approve mock để giữ flow liên tục trong lab.
     """
     state["hitl_triggered"] = True
     state["workers_called"].append("human_review")
@@ -269,7 +268,7 @@ def human_review_node(state: AgentState) -> AgentState:
     print("\nHITL TRIGGERED")
     print(f"  Task   : {state['task']}")
     print(f"  Reason : {state['route_reason']}")
-    print("  Action : Auto-approve in Sprint 1 placeholder mode\n")
+    print("  Action : Auto-approve in lab mode\n")
 
     state["supervisor_route"] = "retrieval_worker"
     state["route_reason"] += " | human_review approved fallback to retrieval_worker"

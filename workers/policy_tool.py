@@ -56,7 +56,7 @@ def analyze_policy(task: str, chunks: list) -> dict:
     """
     Phân tích policy dựa trên context chunks.
 
-    TODO Sprint 2: Implement logic này với LLM call hoặc rule-based check.
+    Hiện dùng rule-based logic để đảm bảo deterministic behavior cho lab.
 
     Cần xử lý các exceptions:
     - Flash Sale → không được hoàn tiền
@@ -101,13 +101,13 @@ def analyze_policy(task: str, chunks: list) -> dict:
     policy_applies = len(exceptions_found) == 0
 
     # Determine which policy version applies (temporal scoping)
-    # TODO: Check nếu đơn hàng trước 01/02/2026 → v3 applies (không có docs, nên flag cho synthesis)
+    # Temporal note: đơn hàng trước 01/02/2026 -> v3 applies (không có docs trong repo hiện tại).
     policy_name = "refund_policy_v4"
     policy_version_note = ""
     if "31/01" in task_lower or "30/01" in task_lower or "trước 01/02" in task_lower:
         policy_version_note = "Đơn hàng đặt trước 01/02/2026 áp dụng chính sách v3 (không có trong tài liệu hiện tại)."
 
-    # TODO Sprint 2: Gọi LLM để phân tích phức tạp hơn
+    # Future enhancement: có thể bổ sung LLM-based policy analysis khi cần độ phủ cao hơn.
     # Ví dụ:
     # from openai import OpenAI
     # client = OpenAI()
@@ -128,7 +128,7 @@ def analyze_policy(task: str, chunks: list) -> dict:
         "exceptions_found": exceptions_found,
         "source": sources,
         "policy_version_note": policy_version_note,
-        "explanation": "Analyzed via rule-based policy check. TODO: upgrade to LLM-based analysis.",
+        "explanation": "Analyzed via deterministic rule-based policy check.",
     }
 
 
@@ -228,6 +228,11 @@ def run(state: dict) -> dict:
             if mcp_trace.get("output") and mcp_trace["output"].get("chunks"):
                 chunks = mcp_trace["output"]["chunks"]
                 state["retrieved_chunks"] = chunks
+                state["retrieved_sources"] = list({c.get("source", "unknown") for c in chunks if c})
+
+        # Đồng bộ retrieved_sources nếu chunks đến từ upstream nhưng sources chưa được set.
+        if chunks and not state.get("retrieved_sources"):
+            state["retrieved_sources"] = list({c.get("source", "unknown") for c in chunks if c})
 
         # Step 1b: Nếu task liên quan access/cấp quyền, gọi MCP access permission
         access_tools = ["access", "cấp quyền", "admin access", "level 2", "level 3", "level 4", "contractor"]
