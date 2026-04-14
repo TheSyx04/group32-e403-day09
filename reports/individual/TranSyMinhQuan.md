@@ -2,18 +2,17 @@
 
 **Họ và tên:** Trần Sỹ Minh Quân  
 **Vai trò trong nhóm:** Worker Owner  
-**Ngày nộp:** 2026-04-14  
-**Độ dài:** ~680 từ
+**Ngày nộp:** 2026-04-14
 
 ---
 
 ## 1. Tôi phụ trách phần nào? (100–150 từ)
 
-Trong lab này tôi phụ trách chính ba worker cốt lõi của pipeline: retrieval, policy/tool, và synthesis. Cụ thể, tôi chịu trách nhiệm các file `workers/retrieval.py`, `workers/policy_tool.py`, `workers/synthesis.py`, đồng thời rà soát phần contract liên quan ở `contracts/worker_contracts.yaml` để đảm bảo I/O nhất quán với graph. Ở retrieval, tôi tập trung vào đường truy vấn ChromaDB và chuẩn hóa score. Ở policy/tool, tôi đảm bảo worker có thể xử lý exception cases (flash sale, digital product, activated product) và có khả năng gọi tool qua MCP path khi cần. Ở synthesis, tôi ưu tiên logic grounded, có citation, và cơ chế abstain khi không đủ context.
+Trong lab này tôi phụ trách chính ba worker cốt lõi của pipeline: retrieval, policy/tool, và synthesis. Tôi chịu trách nhiệm các file `workers/retrieval.py`, `workers/policy_tool.py`, `workers/synthesis.py`, đồng thời rà soát phần contract liên quan ở `contracts/worker_contracts.yaml` để đảm bảo I/O nhất quán với graph. Ở file retrieval, tôi tập trung vào đường truy vấn ChromaDB và chuẩn hóa score. Ở policy/tool, tôi đảm bảo worker có thể xử lý exception cases (flash sale, digital product, activated product) và có khả năng gọi tool qua MCP path khi cần. Ở synthesis, tôi ưu tiên logic grounded, có citation, và cơ chế abstain khi không đủ context.
 
 Công việc của tôi kết nối trực tiếp với Supervisor Owner qua `graph.py`: supervisor route sang worker nào thì output của worker đó phải đủ sạch để synthesis tổng hợp và để trace/debug đọc được.
 
-**Bằng chứng:** `workers/retrieval.py`, `workers/policy_tool.py`, `workers/synthesis.py`, và các trace như `artifacts/traces/run_20260414_163843_745676.json`.
+**Bằng chứng:** `workers/retrieval.py`, `workers/policy_tool.py`, `workers/synthesis.py`, và các file trace.
 
 ---
 
