@@ -1,0 +1,128 @@
+{
+  "task": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+  "route_reason": "task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+  "risk_high": false,
+  "needs_tool": false,
+  "hitl_triggered": false,
+  "retrieved_chunks": [
+    {
+      "text": "4.1 Điều kiện remote:\n- Nhân viên sau probation period có thể làm remote tối đa 2 ngày/tuần.\n- Team Lead phải phê duyệt lịch remote qua HR Portal.\n- Ngày onsite bắt buộc: Thứ 3 và Thứ 5 theo lịch team.\n\n4.2 Yêu cầu kỹ thuật khi remote:\n- Kết nối VPN bắt buộc khi làm việc với hệ thống nội bộ.\n- Camera bật trong các cuộc họp team.",
+      "source": "hr_leave_policy.txt",
+      "score": 0.6794,
+      "metadata": {
+        "department": "HR",
+        "section": "Phần 4: Remote work policy",
+        "source_ref": "hr/leave-policy-2026.pdf",
+        "access": "internal",
+        "effective_date": "2026-01-01",
+        "source": "hr_leave_policy.txt",
+        "source_file": "hr_leave_policy.txt"
+      }
+    },
+    {
+      "text": "Q: Tôi cần cài phần mềm mới, phải làm gì?\nA: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt.\n\nQ: Ai chịu trách nhiệm gia hạn license phần mềm?\nA: IT Procurement team quản lý tất cả license. Nhắc nhở sẽ được gửi 30 ngày trước khi hết hạn.",
+      "source": "it_helpdesk_faq.txt",
+      "score": 0.6059,
+      "metadata": {
+        "source_file": "it_helpdesk_faq.txt",
+        "access": "internal",
+        "source": "it_helpdesk_faq.txt",
+        "effective_date": "2026-01-20",
+        "source_ref": "support/helpdesk-faq.md",
+        "section": "Section 3: Phần mềm và license",
+        "department": "IT"
+      }
+    },
+    {
+      "text": "Q: Phần mềm VPN nào công ty dùng?\nA: Công ty sử dụng Cisco AnyConnect. Download tại https://vpn.company.internal/download.\n\nQ: Tôi bị mất kết nối VPN liên tục, phải làm gì?\nA: Kiểm tra kết nối Internet trước. Nếu vẫn lỗi, tạo ticket P3 với log file VPN đính kèm.\n\nQ: VPN có giới hạn số thiết bị không?\nA: Mỗi tài khoản được kết nối VPN trên tối đa 2 thiết bị cùng lúc.",
+      "source": "it_helpdesk_faq.txt",
+      "score": 0.5924,
+      "metadata": {
+        "source_file": "it_helpdesk_faq.txt",
+        "department": "IT",
+        "source": "it_helpdesk_faq.txt",
+        "effective_date": "2026-01-20",
+        "source_ref": "support/helpdesk-faq.md",
+        "access": "internal",
+        "section": "Section 2: VPN và kết nối từ xa"
+      }
+    }
+  ],
+  "retrieved_sources": [
+    "it_helpdesk_faq.txt",
+    "hr_leave_policy.txt"
+  ],
+  "policy_result": {},
+  "mcp_tools_used": [],
+  "final_answer": "Bằng chứng liên quan:\n- 4.1 Điều kiện remote: - Nhân viên sau probation period có thể làm remote tối đa 2 ngày/tuần. - Team Lead phải phê duyệt lịch remote qua HR Portal. - Ngày onsite bắt buộc: Thứ 3 và Thứ 5 theo lịch team. 4.2 Yêu cầu kỹ thu... [hr_leave_policy.txt]\n- Q: Tôi cần cài phần mềm mới, phải làm gì? A: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt. Q: Ai chịu trách nhiệm gia hạn license phần mềm? A: IT Procurement team quản lý tất... [it_helpdesk_faq.txt]\n- Q: Phần mềm VPN nào công ty dùng? A: Công ty sử dụng Cisco AnyConnect. Download tại https://vpn.company.internal/download. Q: Tôi bị mất kết nối VPN liên tục, phải làm gì? A: Kiểm tra kết nối Internet trước. Nếu vẫn lỗi,... [it_helpdesk_faq.txt]\nTrả lời ngắn:\n- Dựa trên các đoạn trích ở trên, câu trả lời được tổng hợp trực tiếp từ tài liệu nội bộ, không dùng kiến thức ngoài.",
+  "sources": [
+    "it_helpdesk_faq.txt",
+    "hr_leave_policy.txt"
+  ],
+  "confidence": 0.63,
+  "history": [
+    "[graph] run started",
+    "[supervisor] received task: Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+    "[supervisor] route=retrieval_worker risk_high=False needs_tool=False reason=task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+    "[route_decision] next_node=retrieval_worker",
+    "[retrieval_worker] retrieved 3 chunks from ['it_helpdesk_faq.txt', 'hr_leave_policy.txt']",
+    "[synthesis_worker] answer generated, confidence=0.63, sources=['it_helpdesk_faq.txt', 'hr_leave_policy.txt']",
+    "[graph] completed in 5649ms"
+  ],
+  "worker_io_logs": [
+    {
+      "worker": "supervisor",
+      "input": {
+        "task": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?"
+      },
+      "output": {
+        "supervisor_route": "retrieval_worker",
+        "route_reason": "task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+        "risk_high": false,
+        "needs_tool": false,
+        "mcp_decision": "không chọn MCP"
+      },
+      "error": null
+    },
+    {
+      "worker": "retrieval_worker",
+      "input": {
+        "task": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+        "top_k": 3
+      },
+      "output": {
+        "chunks_count": 3,
+        "sources": [
+          "it_helpdesk_faq.txt",
+          "hr_leave_policy.txt"
+        ]
+      },
+      "error": null
+    },
+    {
+      "worker": "synthesis_worker",
+      "input": {
+        "task": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+        "chunks_count": 3,
+        "has_policy": false
+      },
+      "output": {
+        "answer_length": 897,
+        "sources": [
+          "it_helpdesk_faq.txt",
+          "hr_leave_policy.txt"
+        ],
+        "confidence": 0.63
+      },
+      "error": null
+    }
+  ],
+  "workers_called": [
+    "retrieval_worker",
+    "synthesis_worker"
+  ],
+  "supervisor_route": "retrieval_worker",
+  "latency_ms": 5649,
+  "run_id": "run_20260414_172521_497874",
+  "question_id": "q05"
+}

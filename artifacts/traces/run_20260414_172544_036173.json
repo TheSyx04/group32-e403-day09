@@ -1,0 +1,147 @@
+{
+  "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+  "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context | human_review approved fallback to retrieval_worker",
+  "risk_high": true,
+  "needs_tool": false,
+  "hitl_triggered": true,
+  "retrieved_chunks": [
+    {
+      "text": "Chính sách này áp dụng cho tất cả các đơn hàng được đặt trên hệ thống nội bộ kể từ ngày 01/02/2026.\nCác đơn hàng đặt trước ngày có hiệu lực sẽ áp dụng theo chính sách hoàn tiền phiên bản 3.",
+      "source": "policy_refund_v4.txt",
+      "score": 0.4261,
+      "metadata": {
+        "source": "policy_refund_v4.txt",
+        "source_file": "policy_refund_v4.txt",
+        "effective_date": "2026-02-01",
+        "section": "Điều 1: Phạm vi áp dụng",
+        "source_ref": "policy/refund-v4.pdf",
+        "access": "internal",
+        "department": "CS"
+      }
+    },
+    {
+      "text": "Q: Hộp thư đến đầy, phải làm gì?\nA: Xóa email cũ hoặc yêu cầu tăng dung lượng qua ticket IT-ACCESS. Dung lượng tiêu chuẩn là 50GB.\n\nQ: Tôi không nhận được email từ bên ngoài?\nA: Kiểm tra thư mục Spam trước. Nếu vẫn không có, tạo ticket P2 kèm địa chỉ email gửi và thời gian gửi.",
+      "source": "it_helpdesk_faq.txt",
+      "score": 0.3995,
+      "metadata": {
+        "source_ref": "support/helpdesk-faq.md",
+        "source": "it_helpdesk_faq.txt",
+        "section": "Section 5: Email và lịch",
+        "effective_date": "2026-01-20",
+        "department": "IT",
+        "access": "internal",
+        "source_file": "it_helpdesk_faq.txt"
+      }
+    },
+    {
+      "text": "Escalation chỉ áp dụng khi cần thay đổi quyền hệ thống ngoài quy trình thông thường.\nVí dụ: Khẩn cấp trong sự cố P1, cần cấp quyền tạm thời để fix incident.\n\nQuy trình escalation khẩn cấp:\n1. On-call IT Admin có thể cấp quyền tạm thời (max 24 giờ) sau khi được Tech Lead phê duyệt bằng lời.\n2. Sau 24 giờ, phải có ticket chính thức hoặc quyền bị thu hồi tự động.\n3. Mọi quyền tạm thời phải được ghi log vào hệ thống Security Audit.",
+      "source": "access_control_sop.txt",
+      "score": 0.3929,
+      "metadata": {
+        "source_file": "access_control_sop.txt",
+        "access": "internal",
+        "source": "access_control_sop.txt",
+        "source_ref": "it/access-control-sop.md",
+        "department": "IT Security",
+        "section": "Section 4: Escalation khi cần thay đổi quyền hệ thống",
+        "effective_date": "2026-01-01"
+      }
+    }
+  ],
+  "retrieved_sources": [
+    "access_control_sop.txt",
+    "it_helpdesk_faq.txt",
+    "policy_refund_v4.txt"
+  ],
+  "policy_result": {},
+  "mcp_tools_used": [],
+  "final_answer": "Bằng chứng liên quan:\n- Chính sách này áp dụng cho tất cả các đơn hàng được đặt trên hệ thống nội bộ kể từ ngày 01/02/2026. Các đơn hàng đặt trước ngày có hiệu lực sẽ áp dụng theo chính sách hoàn tiền phiên bản 3. [policy_refund_v4.txt]\n- Q: Hộp thư đến đầy, phải làm gì? A: Xóa email cũ hoặc yêu cầu tăng dung lượng qua ticket IT-ACCESS. Dung lượng tiêu chuẩn là 50GB. Q: Tôi không nhận được email từ bên ngoài? A: Kiểm tra thư mục Spam trước. Nếu vẫn không ... [it_helpdesk_faq.txt]\n- Escalation chỉ áp dụng khi cần thay đổi quyền hệ thống ngoài quy trình thông thường. Ví dụ: Khẩn cấp trong sự cố P1, cần cấp quyền tạm thời để fix incident. Quy trình escalation khẩn cấp: 1. On-call IT Admin có thể cấp q... [access_control_sop.txt]\nTrả lời ngắn:\n- Dựa trên các đoạn trích ở trên, câu trả lời được tổng hợp trực tiếp từ tài liệu nội bộ, không dùng kiến thức ngoài.",
+  "sources": [
+    "access_control_sop.txt",
+    "it_helpdesk_faq.txt",
+    "policy_refund_v4.txt"
+  ],
+  "confidence": 0.41,
+  "history": [
+    "[graph] run started",
+    "[supervisor] received task: ERR-403-AUTH là lỗi gì và cách xử lý?",
+    "[supervisor] route=human_review risk_high=True needs_tool=False reason=task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context",
+    "[route_decision] next_node=human_review",
+    "[human_review] HITL triggered - placeholder approval granted",
+    "[retrieval_worker] retrieved 3 chunks from ['access_control_sop.txt', 'it_helpdesk_faq.txt', 'policy_refund_v4.txt']",
+    "[synthesis_worker] answer generated, confidence=0.41, sources=['access_control_sop.txt', 'it_helpdesk_faq.txt', 'policy_refund_v4.txt']",
+    "[graph] completed in 5779ms"
+  ],
+  "worker_io_logs": [
+    {
+      "worker": "supervisor",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?"
+      },
+      "output": {
+        "supervisor_route": "human_review",
+        "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context",
+        "risk_high": true,
+        "needs_tool": false,
+        "mcp_decision": "không chọn MCP"
+      },
+      "error": null
+    },
+    {
+      "worker": "human_review",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "supervisor_route": "human_review",
+        "route_reason": "task contains unknown error code pattern ERR-* without supporting context | supervisor không chọn MCP — human review path cần kiểm tra thủ công | risk_high=True because task mentions urgent or production-impact context"
+      },
+      "output": {
+        "approved": true,
+        "reroute_to": "retrieval_worker"
+      },
+      "error": null
+    },
+    {
+      "worker": "retrieval_worker",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "top_k": 3
+      },
+      "output": {
+        "chunks_count": 3,
+        "sources": [
+          "access_control_sop.txt",
+          "it_helpdesk_faq.txt",
+          "policy_refund_v4.txt"
+        ]
+      },
+      "error": null
+    },
+    {
+      "worker": "synthesis_worker",
+      "input": {
+        "task": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+        "chunks_count": 3,
+        "has_policy": false
+      },
+      "output": {
+        "answer_length": 867,
+        "sources": [
+          "access_control_sop.txt",
+          "it_helpdesk_faq.txt",
+          "policy_refund_v4.txt"
+        ],
+        "confidence": 0.41
+      },
+      "error": null
+    }
+  ],
+  "workers_called": [
+    "human_review",
+    "retrieval_worker",
+    "synthesis_worker"
+  ],
+  "supervisor_route": "retrieval_worker",
+  "latency_ms": 5779,
+  "run_id": "run_20260414_172544_036173",
+  "question_id": "q09"
+}

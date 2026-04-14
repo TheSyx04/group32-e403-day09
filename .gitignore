@@ -7,6 +7,7 @@ chroma_db/
 workers/__pycache__/
 __pycache__/
 
+
 # Grading questions — không public trước 17:00
 day08/lab/data/grading_questions.json
 day09/lab/data/grading_questions.json

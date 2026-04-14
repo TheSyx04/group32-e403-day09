@@ -1,0 +1,265 @@
+{
+  "task": "Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?",
+  "route_reason": "task contains refund/access/policy keywords | task follows policy/tool path and may require tool-backed lookup | supervisor chọn MCP-enabled path để dùng external capabilities",
+  "risk_high": false,
+  "needs_tool": true,
+  "hitl_triggered": false,
+  "retrieved_chunks": [
+    {
+      "text": "Hoàn tiền — Điều kiện áp dụng:\nYêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng.\n\nNgoại lệ không được hoàn tiền:\n- Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription).\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi Flash Sale.\n- Sản phẩm đã được kích hoạt hoặc đăng ký tài khoản.",
+      "source": "policy_refund_v4.txt",
+      "score": 0.6733,
+      "metadata": {
+        "effective_date": "2026-02-01",
+        "source": "policy_refund_v4.txt",
+        "department": "CS",
+        "source_file": "policy_refund_v4.txt",
+        "access": "internal",
+        "source_ref": "policy/refund-v4.pdf",
+        "section": "Điều 3: Điều kiện áp dụng và ngoại lệ"
+      }
+    },
+    {
+      "text": "Q: Tôi quên mật khẩu, phải làm gì?\nA: Truy cập https://sso.company.internal/reset hoặc liên hệ Helpdesk qua ext. 9000. Mật khẩu mới sẽ được gửi qua email công ty trong vòng 5 phút.\n\nQ: Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?\nA: Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO.\n\nQ: Mật khẩu cần thay đổi định kỳ không?\nA: Có. Mật khẩu phải được thay đổi mỗi 90 ngày. Hệ thống sẽ nhắc nhở 7 ngày trước khi hết hạn.",
+      "source": "it_helpdesk_faq.txt",
+      "score": 0.6069,
+      "metadata": {
+        "department": "IT",
+        "section": "Section 1: Tài khoản và mật khẩu",
+        "source_file": "it_helpdesk_faq.txt",
+        "effective_date": "2026-01-20",
+        "source_ref": "support/helpdesk-faq.md",
+        "source": "it_helpdesk_faq.txt",
+        "access": "internal"
+      }
+    },
+    {
+      "text": "Q: Tôi cần cài phần mềm mới, phải làm gì?\nA: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt.\n\nQ: Ai chịu trách nhiệm gia hạn license phần mềm?\nA: IT Procurement team quản lý tất cả license. Nhắc nhở sẽ được gửi 30 ngày trước khi hết hạn.",
+      "source": "it_helpdesk_faq.txt",
+      "score": 0.6037,
+      "metadata": {
+        "source": "it_helpdesk_faq.txt",
+        "source_file": "it_helpdesk_faq.txt",
+        "effective_date": "2026-01-20",
+        "section": "Section 3: Phần mềm và license",
+        "access": "internal",
+        "source_ref": "support/helpdesk-faq.md",
+        "department": "IT"
+      }
+    }
+  ],
+  "retrieved_sources": [
+    "it_helpdesk_faq.txt",
+    "policy_refund_v4.txt"
+  ],
+  "policy_result": {
+    "policy_applies": false,
+    "policy_name": "refund_policy_v4",
+    "exceptions_found": [
+      {
+        "type": "flash_sale_exception",
+        "rule": "Đơn hàng Flash Sale không được hoàn tiền (Điều 3, chính sách v4).",
+        "source": "policy_refund_v4.txt"
+      },
+      {
+        "type": "digital_product_exception",
+        "rule": "Sản phẩm kỹ thuật số (license key, subscription) không được hoàn tiền (Điều 3).",
+        "source": "policy_refund_v4.txt"
+      }
+    ],
+    "source": [
+      "it_helpdesk_faq.txt",
+      "policy_refund_v4.txt"
+    ],
+    "policy_version_note": "",
+    "explanation": "Analyzed via deterministic rule-based policy check."
+  },
+  "mcp_tools_used": [
+    {
+      "tool": "search_kb",
+      "input": {
+        "query": "Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?",
+        "top_k": 3
+      },
+      "output": {
+        "chunks": [
+          {
+            "text": "Hoàn tiền — Điều kiện áp dụng:\nYêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng.\n\nNgoại lệ không được hoàn tiền:\n- Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription).\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi Flash Sale.\n- Sản phẩm đã được kích hoạt hoặc đăng ký tài khoản.",
+            "source": "policy_refund_v4.txt",
+            "score": 0.6733,
+            "metadata": {
+              "effective_date": "2026-02-01",
+              "source": "policy_refund_v4.txt",
+              "department": "CS",
+              "source_file": "policy_refund_v4.txt",
+              "access": "internal",
+              "source_ref": "policy/refund-v4.pdf",
+              "section": "Điều 3: Điều kiện áp dụng và ngoại lệ"
+            }
+          },
+          {
+            "text": "Q: Tôi quên mật khẩu, phải làm gì?\nA: Truy cập https://sso.company.internal/reset hoặc liên hệ Helpdesk qua ext. 9000. Mật khẩu mới sẽ được gửi qua email công ty trong vòng 5 phút.\n\nQ: Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?\nA: Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO.\n\nQ: Mật khẩu cần thay đổi định kỳ không?\nA: Có. Mật khẩu phải được thay đổi mỗi 90 ngày. Hệ thống sẽ nhắc nhở 7 ngày trước khi hết hạn.",
+            "source": "it_helpdesk_faq.txt",
+            "score": 0.6069,
+            "metadata": {
+              "department": "IT",
+              "section": "Section 1: Tài khoản và mật khẩu",
+              "source_file": "it_helpdesk_faq.txt",
+              "effective_date": "2026-01-20",
+              "source_ref": "support/helpdesk-faq.md",
+              "source": "it_helpdesk_faq.txt",
+              "access": "internal"
+            }
+          },
+          {
+            "text": "Q: Tôi cần cài phần mềm mới, phải làm gì?\nA: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt.\n\nQ: Ai chịu trách nhiệm gia hạn license phần mềm?\nA: IT Procurement team quản lý tất cả license. Nhắc nhở sẽ được gửi 30 ngày trước khi hết hạn.",
+            "source": "it_helpdesk_faq.txt",
+            "score": 0.6037,
+            "metadata": {
+              "source": "it_helpdesk_faq.txt",
+              "source_file": "it_helpdesk_faq.txt",
+              "effective_date": "2026-01-20",
+              "section": "Section 3: Phần mềm và license",
+              "access": "internal",
+              "source_ref": "support/helpdesk-faq.md",
+              "department": "IT"
+            }
+          }
+        ],
+        "sources": [
+          "it_helpdesk_faq.txt",
+          "policy_refund_v4.txt"
+        ],
+        "total_found": 3
+      },
+      "timestamp": "2026-04-14T17:25:32.782178",
+      "mcp_tool_called": "search_kb",
+      "mcp_result": {
+        "chunks": [
+          {
+            "text": "Hoàn tiền — Điều kiện áp dụng:\nYêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng.\n\nNgoại lệ không được hoàn tiền:\n- Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription).\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi Flash Sale.\n- Sản phẩm đã được kích hoạt hoặc đăng ký tài khoản.",
+            "source": "policy_refund_v4.txt",
+            "score": 0.6733,
+            "metadata": {
+              "effective_date": "2026-02-01",
+              "source": "policy_refund_v4.txt",
+              "department": "CS",
+              "source_file": "policy_refund_v4.txt",
+              "access": "internal",
+              "source_ref": "policy/refund-v4.pdf",
+              "section": "Điều 3: Điều kiện áp dụng và ngoại lệ"
+            }
+          },
+          {
+            "text": "Q: Tôi quên mật khẩu, phải làm gì?\nA: Truy cập https://sso.company.internal/reset hoặc liên hệ Helpdesk qua ext. 9000. Mật khẩu mới sẽ được gửi qua email công ty trong vòng 5 phút.\n\nQ: Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?\nA: Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO.\n\nQ: Mật khẩu cần thay đổi định kỳ không?\nA: Có. Mật khẩu phải được thay đổi mỗi 90 ngày. Hệ thống sẽ nhắc nhở 7 ngày trước khi hết hạn.",
+            "source": "it_helpdesk_faq.txt",
+            "score": 0.6069,
+            "metadata": {
+              "department": "IT",
+              "section": "Section 1: Tài khoản và mật khẩu",
+              "source_file": "it_helpdesk_faq.txt",
+              "effective_date": "2026-01-20",
+              "source_ref": "support/helpdesk-faq.md",
+              "source": "it_helpdesk_faq.txt",
+              "access": "internal"
+            }
+          },
+          {
+            "text": "Q: Tôi cần cài phần mềm mới, phải làm gì?\nA: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt.\n\nQ: Ai chịu trách nhiệm gia hạn license phần mềm?\nA: IT Procurement team quản lý tất cả license. Nhắc nhở sẽ được gửi 30 ngày trước khi hết hạn.",
+            "source": "it_helpdesk_faq.txt",
+            "score": 0.6037,
+            "metadata": {
+              "source": "it_helpdesk_faq.txt",
+              "source_file": "it_helpdesk_faq.txt",
+              "effective_date": "2026-01-20",
+              "section": "Section 3: Phần mềm và license",
+              "access": "internal",
+              "source_ref": "support/helpdesk-faq.md",
+              "department": "IT"
+            }
+          }
+        ],
+        "sources": [
+          "it_helpdesk_faq.txt",
+          "policy_refund_v4.txt"
+        ],
+        "total_found": 3
+      },
+      "error": null
+    }
+  ],
+  "final_answer": "Kết luận policy:\n- Đơn hàng Flash Sale không được hoàn tiền (Điều 3, chính sách v4). [policy_refund_v4.txt]\n- Sản phẩm kỹ thuật số (license key, subscription) không được hoàn tiền (Điều 3). [policy_refund_v4.txt]\nBằng chứng liên quan:\n- Hoàn tiền — Điều kiện áp dụng: Yêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng. Ngoại lệ không được hoàn tiền: - Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription). - Đơn hàng đã áp... [policy_refund_v4.txt]\n- Q: Tôi quên mật khẩu, phải làm gì? A: Truy cập https://sso.company.internal/reset hoặc liên hệ Helpdesk qua ext. 9000. Mật khẩu mới sẽ được gửi qua email công ty trong vòng 5 phút. Q: Tài khoản bị khóa sau bao nhiêu lần ... [it_helpdesk_faq.txt]\n- Q: Tôi cần cài phần mềm mới, phải làm gì? A: Gửi yêu cầu qua Jira project IT-SOFTWARE. Line Manager phải phê duyệt trước khi IT cài đặt. Q: Ai chịu trách nhiệm gia hạn license phần mềm? A: IT Procurement team quản lý tất... [it_helpdesk_faq.txt]\nTrả lời ngắn:\n- Dựa trên các đoạn trích ở trên, câu trả lời được tổng hợp trực tiếp từ tài liệu nội bộ, không dùng kiến thức ngoài.",
+  "sources": [
+    "it_helpdesk_faq.txt",
+    "policy_refund_v4.txt"
+  ],
+  "confidence": 0.53,
+  "history": [
+    "[graph] run started",
+    "[supervisor] received task: Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?",
+    "[supervisor] route=policy_tool_worker risk_high=False needs_tool=True reason=task contains refund/access/policy keywords | task follows policy/tool path and may require tool-backed lookup | supervisor chọn MCP-enabled path để dùng external capabilities",
+    "[route_decision] next_node=policy_tool_worker",
+    "[policy_tool_worker] called MCP search_kb | mcp_tool_called=search_kb | timestamp=2026-04-14T17:25:32.782178",
+    "[policy_tool_worker] policy_applies=False, exceptions=2, mcp_tools_called=['search_kb']",
+    "[synthesis_worker] answer generated, confidence=0.53, sources=['it_helpdesk_faq.txt', 'policy_refund_v4.txt']",
+    "[graph] completed in 5700ms"
+  ],
+  "worker_io_logs": [
+    {
+      "worker": "supervisor",
+      "input": {
+        "task": "Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?"
+      },
+      "output": {
+        "supervisor_route": "policy_tool_worker",
+        "route_reason": "task contains refund/access/policy keywords | task follows policy/tool path and may require tool-backed lookup | supervisor chọn MCP-enabled path để dùng external capabilities",
+        "risk_high": false,
+        "needs_tool": true,
+        "mcp_decision": "chọn MCP"
+      },
+      "error": null
+    },
+    {
+      "worker": "policy_tool_worker",
+      "input": {
+        "task": "Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?",
+        "chunks_count": 0,
+        "needs_tool": true
+      },
+      "output": {
+        "policy_applies": false,
+        "exceptions_count": 2,
+        "mcp_calls": 1,
+        "mcp_tools_called": [
+          "search_kb"
+        ]
+      },
+      "error": null
+    },
+    {
+      "worker": "synthesis_worker",
+      "input": {
+        "task": "Sản phẩm kỹ thuật số (license key) có được hoàn tiền không?",
+        "chunks_count": 3,
+        "has_policy": true
+      },
+      "output": {
+        "answer_length": 1111,
+        "sources": [
+          "it_helpdesk_faq.txt",
+          "policy_refund_v4.txt"
+        ],
+        "confidence": 0.53
+      },
+      "error": null
+    }
+  ],
+  "workers_called": [
+    "policy_tool_worker",
+    "synthesis_worker"
+  ],
+  "supervisor_route": "policy_tool_worker",
+  "latency_ms": 5700,
+  "run_id": "run_20260414_172532_782178",
+  "question_id": "q07"
+}

@@ -1,0 +1,132 @@
+{
+  "task": "Nhân viên vừa vào thử việc (trong probation period) muốn làm remote vì lý do cá nhân. Điều kiện là gì?",
+  "route_reason": "task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+  "risk_high": false,
+  "needs_tool": false,
+  "hitl_triggered": false,
+  "retrieved_chunks": [
+    {
+      "text": "4.1 Điều kiện remote:\n- Nhân viên sau probation period có thể làm remote tối đa 2 ngày/tuần.\n- Team Lead phải phê duyệt lịch remote qua HR Portal.\n- Ngày onsite bắt buộc: Thứ 3 và Thứ 5 theo lịch team.\n\n4.2 Yêu cầu kỹ thuật khi remote:\n- Kết nối VPN bắt buộc khi làm việc với hệ thống nội bộ.\n- Camera bật trong các cuộc họp team.",
+      "source": "hr_leave_policy.txt",
+      "score": 0.7312,
+      "metadata": {
+        "effective_date": "2026-01-01",
+        "source": "hr_leave_policy.txt",
+        "department": "HR",
+        "access": "internal",
+        "source_ref": "hr/leave-policy-2026.pdf",
+        "section": "Phần 4: Remote work policy",
+        "source_file": "hr_leave_policy.txt"
+      }
+    },
+    {
+      "text": "Hoàn tiền — Điều kiện áp dụng:\nYêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng.\n\nNgoại lệ không được hoàn tiền:\n- Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription).\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi Flash Sale.\n- Sản phẩm đã được kích hoạt hoặc đăng ký tài khoản.",
+      "source": "policy_refund_v4.txt",
+      "score": 0.6146,
+      "metadata": {
+        "source_file": "policy_refund_v4.txt",
+        "source_ref": "policy/refund-v4.pdf",
+        "access": "internal",
+        "effective_date": "2026-02-01",
+        "section": "Điều 3: Điều kiện áp dụng và ngoại lệ",
+        "department": "CS",
+        "source": "policy_refund_v4.txt"
+      }
+    },
+    {
+      "text": "Tài liệu này quy định quy trình cấp phép truy cập vào các hệ thống nội bộ của công ty.\nÁp dụng cho tất cả nhân viên, contractor, và third-party vendor.",
+      "source": "access_control_sop.txt",
+      "score": 0.6076,
+      "metadata": {
+        "effective_date": "2026-01-01",
+        "source_file": "access_control_sop.txt",
+        "department": "IT Security",
+        "source": "access_control_sop.txt",
+        "section": "Section 1: Phạm vi và mục đích",
+        "source_ref": "it/access-control-sop.md",
+        "access": "internal"
+      }
+    }
+  ],
+  "retrieved_sources": [
+    "access_control_sop.txt",
+    "hr_leave_policy.txt",
+    "policy_refund_v4.txt"
+  ],
+  "policy_result": {},
+  "mcp_tools_used": [],
+  "final_answer": "Bằng chứng liên quan:\n- 4.1 Điều kiện remote: - Nhân viên sau probation period có thể làm remote tối đa 2 ngày/tuần. - Team Lead phải phê duyệt lịch remote qua HR Portal. - Ngày onsite bắt buộc: Thứ 3 và Thứ 5 theo lịch team. 4.2 Yêu cầu kỹ thu... [hr_leave_policy.txt]\n- Hoàn tiền — Điều kiện áp dụng: Yêu cầu được gửi trong vòng 7 ngày kể từ thời điểm xác nhận đơn hàng. Ngoại lệ không được hoàn tiền: - Sản phẩm thuộc danh mục hàng kỹ thuật số (license key, subscription). - Đơn hàng đã áp... [policy_refund_v4.txt]\n- Tài liệu này quy định quy trình cấp phép truy cập vào các hệ thống nội bộ của công ty. Áp dụng cho tất cả nhân viên, contractor, và third-party vendor. [access_control_sop.txt]\nTrả lời ngắn:\n- Dựa trên các đoạn trích ở trên, câu trả lời được tổng hợp trực tiếp từ tài liệu nội bộ, không dùng kiến thức ngoài.",
+  "sources": [
+    "access_control_sop.txt",
+    "hr_leave_policy.txt",
+    "policy_refund_v4.txt"
+  ],
+  "confidence": 0.65,
+  "history": [
+    "[graph] run started",
+    "[supervisor] received task: Nhân viên vừa vào thử việc (trong probation period) muốn làm remote vì lý do cá nhân. Điều kiện là gì?",
+    "[supervisor] route=retrieval_worker risk_high=False needs_tool=False reason=task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+    "[route_decision] next_node=retrieval_worker",
+    "[retrieval_worker] retrieved 3 chunks from ['access_control_sop.txt', 'hr_leave_policy.txt', 'policy_refund_v4.txt']",
+    "[synthesis_worker] answer generated, confidence=0.65, sources=['access_control_sop.txt', 'hr_leave_policy.txt', 'policy_refund_v4.txt']",
+    "[graph] completed in 5960ms"
+  ],
+  "worker_io_logs": [
+    {
+      "worker": "supervisor",
+      "input": {
+        "task": "Nhân viên vừa vào thử việc (trong probation period) muốn làm remote vì lý do cá nhân. Điều kiện là gì?"
+      },
+      "output": {
+        "supervisor_route": "retrieval_worker",
+        "route_reason": "task does not match policy or error patterns -> default retrieval path | supervisor không chọn MCP — default path dùng internal retrieval",
+        "risk_high": false,
+        "needs_tool": false,
+        "mcp_decision": "không chọn MCP"
+      },
+      "error": null
+    },
+    {
+      "worker": "retrieval_worker",
+      "input": {
+        "task": "Nhân viên vừa vào thử việc (trong probation period) muốn làm remote vì lý do cá nhân. Điều kiện là gì?",
+        "top_k": 3
+      },
+      "output": {
+        "chunks_count": 3,
+        "sources": [
+          "access_control_sop.txt",
+          "hr_leave_policy.txt",
+          "policy_refund_v4.txt"
+        ]
+      },
+      "error": null
+    },
+    {
+      "worker": "synthesis_worker",
+      "input": {
+        "task": "Nhân viên vừa vào thử việc (trong probation period) muốn làm remote vì lý do cá nhân. Điều kiện là gì?",
+        "chunks_count": 3,
+        "has_policy": false
+      },
+      "output": {
+        "answer_length": 829,
+        "sources": [
+          "access_control_sop.txt",
+          "hr_leave_policy.txt",
+          "policy_refund_v4.txt"
+        ],
+        "confidence": 0.65
+      },
+      "error": null
+    }
+  ],
+  "workers_called": [
+    "retrieval_worker",
+    "synthesis_worker"
+  ],
+  "supervisor_route": "retrieval_worker",
+  "latency_ms": 5960,
+  "run_id": "run_20260414_172612_879712",
+  "question_id": "q14"
+}
