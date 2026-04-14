@@ -4,10 +4,11 @@
 **Thành viên:**
 | Tên | Vai trò | Email |
 |-----|---------|-------|
-| [Name A] | Supervisor Owner | [email@example.com] |
-| [Name B] | Worker Owner | [email@example.com] |
-| [Name C] | MCP Owner | [theanha2hvtls@gmail.com] |
-| [Name D] | Trace & Docs Owner | [email@example.com] |
+| [Vũ Đức Minh] | Supervisor Owner | [vuducminh474@gmail.com] |
+| [Trần Sỹ Minh Quân] | Worker Owner | [minhquantsy@gmail.com] |
+| [Nguyễn Thế Anh] | MCP Owner | [theanha2hvtls@gmail.com] |
+| [Ngô Quang Tăng ] | Docs Owner | [ngoquangtang2004@gmail.com] |
+| [Phạm Minh Khôi ] | Trace Owner | [phamminhkhoi.05.09.12@gmail.com] |
 
 **Ngày nộp:** 2026-04-14  
 **Repo:** group32-e403-day09  
