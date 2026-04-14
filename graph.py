@@ -178,16 +178,20 @@ def supervisor_node(state: AgentState) -> AgentState:
         route = "human_review"
         risk_high = True
         route_reason_parts.append("task contains unknown error code pattern ERR-* without supporting context")
+        route_reason_parts.append("supervisor không chọn MCP — human review path cần kiểm tra thủ công")
     elif _contains_any(task_normalized, policy_keywords):
         route = "policy_tool_worker"
         route_reason_parts.append("task contains refund/access/policy keywords")
         needs_tool = True
         route_reason_parts.append("task follows policy/tool path and may require tool-backed lookup")
+        route_reason_parts.append("supervisor chọn MCP-enabled path để dùng external capabilities")
     elif _contains_any(task_normalized, retrieval_keywords):
         route = "retrieval_worker"
         route_reason_parts.append("task contains SLA/ticket/escalation retrieval keywords")
+        route_reason_parts.append("supervisor không chọn MCP — retrieval path không cần external tool")
     else:
         route_reason_parts.append("task does not match policy or error patterns -> default retrieval path")
+        route_reason_parts.append("supervisor không chọn MCP — default path dùng internal retrieval")
 
     if risk_high:
         if access_context and ticket_context:
@@ -210,6 +214,7 @@ def supervisor_node(state: AgentState) -> AgentState:
                 "route_reason": route_reason,
                 "risk_high": risk_high,
                 "needs_tool": needs_tool,
+                "mcp_decision": "chọn MCP" if needs_tool else "không chọn MCP",
             },
             "error": None,
         }
@@ -242,8 +247,7 @@ def route_decision(state: AgentState) -> Literal["retrieval_worker", "policy_too
 def human_review_node(state: AgentState) -> AgentState:
     """
     HITL node: pause và chờ human approval.
-    Trong Sprint 1, node này là placeholder để trace thể hiện rõ rằng flow
-    đã đi qua human review trước khi quay lại retrieval.
+    HITL node hiện dùng auto-approve mock để giữ flow liên tục trong lab.
     """
     state["hitl_triggered"] = True
     state["workers_called"].append("human_review")
@@ -264,7 +268,7 @@ def human_review_node(state: AgentState) -> AgentState:
     print("\nHITL TRIGGERED")
     print(f"  Task   : {state['task']}")
     print(f"  Reason : {state['route_reason']}")
-    print("  Action : Auto-approve in Sprint 1 placeholder mode\n")
+    print("  Action : Auto-approve in lab mode\n")
 
     state["supervisor_route"] = "retrieval_worker"
     state["route_reason"] += " | human_review approved fallback to retrieval_worker"
