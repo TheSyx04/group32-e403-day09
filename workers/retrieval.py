@@ -38,7 +38,7 @@ def _get_embedding_fn():
         from sentence_transformers import SentenceTransformer
         model = SentenceTransformer("all-MiniLM-L6-v2")
         def embed(text: str) -> list:
-            return model.encode([text])[0].tolist()
+            return model.encode([text], normalize_embeddings=True)[0].tolist()
         return embed
     except ImportError:
         pass
@@ -68,16 +68,18 @@ def _get_collection():
     TODO Sprint 2: Đảm bảo collection đã được build từ Step 3 trong README.
     """
     import chromadb
-    client = chromadb.PersistentClient(path="./chroma_db")
+    chroma_path = os.getenv("CHROMA_DB_PATH", "./chroma_db")
+    collection_name = os.getenv("CHROMA_COLLECTION", "day09_docs")
+    client = chromadb.PersistentClient(path=chroma_path)
     try:
-        collection = client.get_collection("day09_docs")
+        collection = client.get_collection(collection_name)
     except Exception:
         # Auto-create nếu chưa có
         collection = client.get_or_create_collection(
-            "day09_docs",
+            collection_name,
             metadata={"hnsw:space": "cosine"}
         )
-        print(f"⚠️  Collection 'day09_docs' chưa có data. Chạy index script trong README trước.")
+        print(f"⚠️  Collection '{collection_name}' chưa có data. Chạy build_index.py (hoặc index script) trước.")
     return collection
 
 
@@ -111,10 +113,17 @@ def retrieve_dense(query: str, top_k: int = DEFAULT_TOP_K) -> list:
             results["distances"][0],
             results["metadatas"][0]
         )):
+            # Với cosine space, Chroma thường trả distance ~ (1 - cosine_similarity).
+            # Clamp để luôn nằm trong [0, 1] theo contract.
+            try:
+                similarity = 1.0 - float(dist)
+            except Exception:
+                similarity = 0.0
+            similarity = max(0.0, min(1.0, similarity))
             chunks.append({
                 "text": doc,
                 "source": meta.get("source", "unknown"),
-                "score": round(1 - dist, 4),  # cosine similarity
+                "score": round(similarity, 4),
                 "metadata": meta,
             })
         return chunks
@@ -136,7 +145,13 @@ def run(state: dict) -> dict:
         Updated AgentState với retrieved_chunks và retrieved_sources
     """
     task = state.get("task", "")
-    top_k = state.get("retrieval_top_k", DEFAULT_TOP_K)
+    env_top_k = os.getenv("RETRIEVAL_TOP_K")
+    try:
+        env_top_k_int = int(env_top_k) if env_top_k else DEFAULT_TOP_K
+    except ValueError:
+        env_top_k_int = DEFAULT_TOP_K
+
+    top_k = state.get("retrieval_top_k", env_top_k_int)
 
     state.setdefault("workers_called", [])
     state.setdefault("history", [])
