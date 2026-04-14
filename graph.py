@@ -16,6 +16,10 @@ import unicodedata
 from datetime import datetime
 from typing import Literal, Optional, TypedDict
 
+from workers.policy_tool import run as policy_tool_run
+from workers.retrieval import run as retrieval_run
+from workers.synthesis import run as synthesis_run
+
 
 VALID_ROUTES = ("retrieval_worker", "policy_tool_worker", "human_review")
 
@@ -267,166 +271,19 @@ def human_review_node(state: AgentState) -> AgentState:
     return state
 
 
-def _placeholder_retrieval_output(task_lower: str) -> tuple[list, list]:
-    if _contains_any(task_lower, ["p1", "sla", "ticket", "escalation"]):
-        chunks = [
-            {
-                "text": "Ticket P1: phản hồi ban đầu 15 phút, xử lý và khắc phục 4 giờ. Nếu không có phản hồi trong 10 phút thì tự động escalate lên Senior Engineer.",
-                "source": "sla_p1_2026.txt",
-                "score": 0.92,
-            }
-        ]
-    elif _contains_any(task_lower, ["hoàn tiền", "refund", "flash sale", "license"]):
-        chunks = [
-            {
-                "text": "Yêu cầu hoàn tiền hợp lệ trong vòng 7 ngày. Ngoại lệ gồm Flash Sale và sản phẩm kỹ thuật số như license key, subscription.",
-                "source": "policy_refund_v4.txt",
-                "score": 0.88,
-            }
-        ]
-    elif _contains_any(task_lower, ["access", "cấp quyền", "level 2", "level 3", "level 4", "admin"]):
-        chunks = [
-            {
-                "text": "Quyền truy cập được cấp theo level. Level 3 cần Line Manager, IT Admin và IT Security phê duyệt.",
-                "source": "access_control_sop.txt",
-                "score": 0.86,
-            }
-        ]
-    elif _contains_any(task_lower, ["remote", "probation", "hr", "nghỉ phép"]):
-        chunks = [
-            {
-                "text": "Nhân viên sau probation period có thể làm remote tối đa 2 ngày mỗi tuần nếu được Team Lead phê duyệt.",
-                "source": "hr_leave_policy.txt",
-                "score": 0.84,
-            }
-        ]
-    else:
-        chunks = [
-            {
-                "text": "FAQ nội bộ: tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp.",
-                "source": "it_helpdesk_faq.txt",
-                "score": 0.75,
-            }
-        ]
-
-    return chunks, list({chunk["source"] for chunk in chunks})
-
-
 def retrieval_worker_node(state: AgentState) -> AgentState:
-    """Wrapper placeholder cho Sprint 1."""
-    task_lower = state["task"].lower()
-    state["workers_called"].append("retrieval_worker")
-    _append_history(state, "[retrieval_worker] called")
-
-    chunks, sources = _placeholder_retrieval_output(task_lower)
-    state["retrieved_chunks"] = chunks
-    state["retrieved_sources"] = sources
-    state["worker_io_logs"].append(
-        {
-            "worker": "retrieval_worker",
-            "input": {"task": state["task"], "placeholder_mode": True},
-            "output": {"chunks_count": len(chunks), "sources": sources},
-            "error": None,
-        }
-    )
-    _append_history(state, f"[retrieval_worker] retrieved {len(chunks)} chunk(s) from {sources}")
-    return state
+    """Wrapper gọi retrieval worker thật (Sprint 2)."""
+    return retrieval_run(state)
 
 
 def policy_tool_worker_node(state: AgentState) -> AgentState:
-    """Wrapper placeholder cho Sprint 1."""
-    task_lower = state["task"].lower()
-    state["workers_called"].append("policy_tool_worker")
-    _append_history(state, "[policy_tool_worker] called")
-
-    exceptions_found = []
-    policy_applies = True
-    if "flash sale" in task_lower:
-        policy_applies = False
-        exceptions_found.append(
-            {
-                "type": "flash_sale_exception",
-                "rule": "Đơn hàng Flash Sale không được hoàn tiền.",
-                "source": "policy_refund_v4.txt",
-            }
-        )
-    if "license" in task_lower or "subscription" in task_lower:
-        policy_applies = False
-        exceptions_found.append(
-            {
-                "type": "digital_product_exception",
-                "rule": "License key và subscription thuộc nhóm sản phẩm kỹ thuật số không được hoàn tiền.",
-                "source": "policy_refund_v4.txt",
-            }
-        )
-
-    state["policy_result"] = {
-        "policy_applies": policy_applies,
-        "policy_name": "refund_policy_v4_or_access_control_placeholder",
-        "exceptions_found": exceptions_found,
-        "source": ["policy_refund_v4.txt"] if exceptions_found or "hoàn tiền" in task_lower or "refund" in task_lower else ["access_control_sop.txt"],
-        "policy_version_note": "",
-    }
-    state["worker_io_logs"].append(
-        {
-            "worker": "policy_tool_worker",
-            "input": {"task": state["task"], "needs_tool": state["needs_tool"], "placeholder_mode": True},
-            "output": state["policy_result"],
-            "error": None,
-        }
-    )
-    _append_history(
-        state,
-        f"[policy_tool_worker] policy_applies={policy_applies} exceptions={len(exceptions_found)}",
-    )
-    return state
+    """Wrapper gọi policy/tool worker thật (Sprint 2)."""
+    return policy_tool_run(state)
 
 
 def synthesis_worker_node(state: AgentState) -> AgentState:
-    """Wrapper placeholder cho Sprint 1."""
-    state["workers_called"].append("synthesis_worker")
-    _append_history(state, "[synthesis_worker] called")
-
-    sources = state.get("retrieved_sources", [])
-    route = state.get("supervisor_route", "")
-    chunks = state.get("retrieved_chunks", [])
-    policy_result = state.get("policy_result", {})
-
-    if route == "policy_tool_worker" and policy_result.get("exceptions_found"):
-        exception_type = policy_result["exceptions_found"][0]["type"]
-        answer = (
-            f"[SPRINT1 PLACEHOLDER] Supervisor routed to policy_tool_worker. "
-            f"Detected exception `{exception_type}`. Evidence comes from {sources or policy_result.get('source', [])}."
-        )
-        confidence = 0.72
-    elif chunks:
-        answer = (
-            f"[SPRINT1 PLACEHOLDER] Supervisor routed to {route}. "
-            f"Retrieved {len(chunks)} chunk(s) and will synthesize from {sources}."
-        )
-        confidence = 0.75
-    else:
-        answer = "[SPRINT1 PLACEHOLDER] Không có evidence để tổng hợp câu trả lời."
-        confidence = 0.3
-
-    state["final_answer"] = answer
-    state["sources"] = sources or policy_result.get("source", [])
-    state["confidence"] = confidence
-    state["worker_io_logs"].append(
-        {
-            "worker": "synthesis_worker",
-            "input": {
-                "task": state["task"],
-                "chunks_count": len(chunks),
-                "has_policy_result": bool(policy_result),
-                "placeholder_mode": True,
-            },
-            "output": {"sources": state["sources"], "confidence": confidence},
-            "error": None,
-        }
-    )
-    _append_history(state, f"[synthesis_worker] answer generated, confidence={confidence}")
-    return state
+    """Wrapper gọi synthesis worker thật (Sprint 2)."""
+    return synthesis_run(state)
 
 
 def build_graph():
@@ -511,4 +368,4 @@ if __name__ == "__main__":
         trace_file = save_trace(result)
         print(f"  Trace saved -> {trace_file}")
 
-    print("\nSprint 1 graph test complete.")
+    print("\nGraph test complete (Sprint 2 integration mode).")

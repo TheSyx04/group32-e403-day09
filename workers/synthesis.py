@@ -17,6 +17,7 @@ Gọi độc lập để test:
 """
 
 import os
+import warnings
 
 WORKER_NAME = "synthesis_worker"
 
@@ -36,33 +37,99 @@ def _call_llm(messages: list) -> str:
     Gọi LLM để tổng hợp câu trả lời.
     TODO Sprint 2: Implement với OpenAI hoặc Gemini.
     """
+    openai_key = os.getenv("OPENAI_API_KEY")
+    google_key = os.getenv("GOOGLE_API_KEY")
+
     # Option A: OpenAI
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-            temperature=0.1,  # Low temperature để grounded
-            max_tokens=500,
-        )
-        return response.choices[0].message.content
-    except Exception:
-        pass
+    if openai_key:
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=openai_key)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                temperature=0.1,  # Low temperature để grounded
+                max_tokens=500,
+            )
+            return response.choices[0].message.content
+        except Exception:
+            pass
 
     # Option B: Gemini
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        combined = "\n".join([m["content"] for m in messages])
-        response = model.generate_content(combined)
-        return response.text
-    except Exception:
-        pass
+    if google_key:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", FutureWarning)
+                import google.generativeai as genai
+            genai.configure(api_key=google_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            combined = "\n".join([m["content"] for m in messages])
+            response = model.generate_content(combined)
+            return response.text
+        except Exception:
+            pass
 
     # Fallback: trả về message báo lỗi (không hallucinate)
     return "[SYNTHESIS ERROR] Không thể gọi LLM. Kiểm tra API key trong .env."
+
+
+def _format_citation(source: str) -> str:
+    return f"[{source}]"
+
+
+def _rule_based_answer(task: str, chunks: list, policy_result: dict) -> str:
+    """Tạo câu trả lời grounded từ context, không phụ thuộc LLM."""
+    if not chunks:
+        return "Không đủ thông tin trong tài liệu nội bộ để trả lời câu hỏi này."
+
+    top_chunks = chunks[:3]
+    lines = []
+
+    if policy_result:
+        exceptions = policy_result.get("exceptions_found", []) or []
+        policy_sources = policy_result.get("source", []) or []
+        if exceptions:
+            lines.append("Kết luận policy:")
+            for ex in exceptions[:2]:
+                src = ex.get("source", "unknown")
+                if src == "unknown" and policy_sources:
+                    src = policy_sources[0]
+                if src == "unknown" and chunks:
+                    src = chunks[0].get("source", "unknown")
+                lines.append(f"- {ex.get('rule', '').strip()} {_format_citation(src)}")
+
+    lines.append("Bằng chứng liên quan:")
+    for chunk in top_chunks:
+        src = chunk.get("source", "unknown")
+        text = " ".join(chunk.get("text", "").strip().split())
+        preview = text[:220] + ("..." if len(text) > 220 else "")
+        lines.append(f"- {preview} {_format_citation(src)}")
+
+    lines.append("Trả lời ngắn:")
+    lines.append(
+        "- Dựa trên các đoạn trích ở trên, câu trả lời được tổng hợp trực tiếp từ tài liệu nội bộ, không dùng kiến thức ngoài."
+    )
+    return "\n".join(lines)
+
+
+def _ensure_citation(answer: str, chunks: list, policy_result: dict) -> str:
+    """Đảm bảo answer có ít nhất 1 citation khi có evidence."""
+    has_evidence = bool(chunks or policy_result.get("source") or policy_result.get("exceptions_found"))
+    if not has_evidence:
+        return answer
+
+    if "[" in answer and "]" in answer:
+        return answer
+
+    fallback_source = None
+    if chunks:
+        fallback_source = chunks[0].get("source", "unknown")
+    elif policy_result.get("source"):
+        fallback_source = policy_result["source"][0]
+    else:
+        fallback_source = "unknown"
+
+    return f"{answer}\n\nNguồn: {_format_citation(fallback_source)}"
 
 
 def _build_context(chunks: list, policy_result: dict) -> str:
@@ -123,23 +190,38 @@ def synthesize(task: str, chunks: list, policy_result: dict) -> dict:
     Returns:
         {"answer": str, "sources": list, "confidence": float}
     """
-    context = _build_context(chunks, policy_result)
+    if not chunks:
+        answer = "Không đủ thông tin trong tài liệu nội bộ để trả lời câu hỏi này."
+        sources = []
+    else:
+        # Mặc định dùng synthesis deterministic để tránh phụ thuộc API và hạn chế hallucination.
+        answer = _rule_based_answer(task, chunks, policy_result)
 
-    # Build messages
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": f"""Câu hỏi: {task}
+        # Optional: nếu có API key thì cho phép LLM diễn đạt lại, nhưng vẫn giữ grounding context.
+        if os.getenv("OPENAI_API_KEY") or os.getenv("GOOGLE_API_KEY"):
+            context = _build_context(chunks, policy_result)
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"""Câu hỏi: {task}
 
 {context}
 
-Hãy trả lời câu hỏi dựa vào tài liệu trên."""
-        }
-    ]
+Hãy trả lời dựa 100% vào context, có citation theo nguồn."""
+                }
+            ]
+            llm_answer = _call_llm(messages)
+            if llm_answer and not llm_answer.startswith("[SYNTHESIS ERROR]"):
+                answer = llm_answer
 
-    answer = _call_llm(messages)
-    sources = list({c.get("source", "unknown") for c in chunks})
+        sources = list({c.get("source", "unknown") for c in chunks})
+        answer = _ensure_citation(answer, chunks, policy_result)
+
+    # Nếu policy_result có nguồn nhưng chunks chưa có, vẫn giữ source để trace.
+    if not sources and policy_result.get("source"):
+        sources = list(policy_result.get("source", []))
+
     confidence = _estimate_confidence(chunks, answer, policy_result)
 
     return {
